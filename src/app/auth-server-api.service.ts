@@ -44,24 +44,29 @@ export class AuthServerApiService {
             this.userProfileSubject.next(userProfile as UserInfo);
             this.userInfo = userProfile as UserInfo;
             //load the roles that are applicable to the logged in user
-            this.loadLoggedInUserRoles();
+            this._loadLoggedInUserRoles();
           });
         }
       });
     });
   }
 
-  loadLoggedInUserRoles() {
+  getDecodedJwtData() {
     let jwt = this.oAuthService.getAccessToken();
-    console.log('jwt: ', jwt);
     let jwtData = jwt.split('.')[1];
     let decodedJwtJsonData = window.atob(jwtData);
-    let decodedJwtData = JSON.parse(decodedJwtJsonData);
+    return JSON.parse(decodedJwtJsonData);
+  }
 
-    console.log('decodedJwtData: ', decodedJwtData);
-
-    this.roles =
+  getRoles() {
+    let decodedJwtData = this.getDecodedJwtData();
+    let roles =
       decodedJwtData['resource_access']['springboot-microservice']['roles'];
+    return roles;
+  }
+
+  _loadLoggedInUserRoles() {
+    this.roles = this.getRoles();
     console.log('roles: ', this.roles);
     this.userRolesSubject.next(this.roles as string[]);
   }

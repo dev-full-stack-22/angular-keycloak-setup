@@ -1,5 +1,10 @@
 <div *ngIf="userInfo;else other_content">
   <h1>Hello {{userInfo['info']['name']}}</h1>
+  <p-button label="View Access Token" (click)="showAccessToken()"></p-button>
+  <div *ngIf="jwtToken">
+    <p>Roles: {{roles}}</p>
+    <pre [innerHTML]="jwtToken | prettyjson: [true, 3]"></pre>
+  </div>
 </div>
 <ng-template #other_content>
   <p>Loading Data...</p>
