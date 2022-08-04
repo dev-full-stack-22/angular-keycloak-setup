@@ -1,7 +1,9 @@
 import { Component } from '@angular/core';
-import { catchError, finalize, throwError } from 'rxjs';
-import { AuthServerApiService, UserInfo } from './auth-server-api.service';
-import { BackendServiceService } from './backend-service.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { UserInfo } from 'angular-oauth2-oidc';
+import { MenuItem } from 'primeng/api';
+import { TabMenu } from 'primeng/tabmenu';
+import { AuthServerApiService } from './auth-server-api.service';
 
 @Component({
   selector: 'app-root',
@@ -11,40 +13,78 @@ import { BackendServiceService } from './backend-service.service';
 export class AppComponent {
   title = 'demo-ui';
 
+  items: MenuItem[] = [];
+
   userInfo?: UserInfo;
 
   userText: string = '';
 
+  userMenuItems = [
+    { label: 'Weclome Page', icon: 'pi pi-fw pi-home', id: '1' },
+    { label: 'User', icon: 'pi pi-user', id: '2' },
+    { label: 'Logout', icon: 'pi pi-power-off', id: '4' },
+  ];
+
+  adminMenuItems = [
+    { label: 'Weclome Page', icon: 'pi pi-fw pi-home', id: '1' },
+    { label: 'Admin', icon: 'pi pi-user-plus', id: '3' },
+    { label: 'Logout', icon: 'pi pi-power-off', id: '4' },
+  ];
+
+  allMenuItems = [
+    { label: 'Weclome Page', icon: 'pi pi-fw pi-home', id: '1' },
+    { label: 'User', icon: 'pi pi-user', id: '2' },
+    { label: 'Admin', icon: 'pi pi-user-plus', id: '3' },
+    { label: 'Logout', icon: 'pi pi-power-off', id: '4' },
+  ];
+
   constructor(
     private readonly authApiServer: AuthServerApiService,
-    private backendService: BackendServiceService
+    private router: Router,
+    private route: ActivatedRoute
   ) {
-    authApiServer.userProfileSubject.subscribe((info) => {
-      this.userInfo = info;
+    // this.authApiServer.userProfileSubject.subscribe((info) => {
+    //   this.userInfo = info;
+    //   console.log('APP COMPONENT welcome page userInfo: ', info);
+    //   this.router.navigate(['welcome'], { relativeTo: this.route });
+    // });
+
+    //wait till the logged in user roles are identified and once a trigger is received load the menu bar accordingly
+    this.authApiServer.userRolesSubject.subscribe((roles) => {
+      console.log(
+        'APP COMPONENT welcome page userInfo: ',
+        authApiServer.userInfo
+      );
+      console.log('APP COMPONENT welcome page roles: ', roles);
+      this.router.navigate(['welcome'], { relativeTo: this.route });
+      this.loadMenuItems(roles);
     });
   }
 
-  getUserText() {
-    console.log('get user text');
-    this.backendService
-      .getUserText()
-      .pipe(
-        finalize(() => {
-          console.log('inside finalize');
-        }),
-        catchError((error) => {
-          console.log('error: ', error);
-          return throwError(error);
-        })
-      )
-      .subscribe((out) => {
-        console.log('out: ', out);
-        this.userText = out;
-      });
+  ngOnInit(): void {}
+
+  loadMenuItems(roles: string[]) {
+    if (roles.some((x) => x === 'admin') && roles.some((x) => x === 'user')) {
+      this.items = this.allMenuItems;
+    } else if (roles.some((x) => x === 'admin')) {
+      this.items = this.adminMenuItems;
+    } else if (roles.some((x) => x === 'user')) {
+      this.items = this.userMenuItems;
+    }
   }
 
-  isLoggedIn() {
-    return this.authApiServer.isLoggedIn();
+  activateMenu(tab: TabMenu) {
+    let selectedIndex = tab.activeItem.id;
+    console.log('selectedIndex: ', tab.activeItem.id);
+    if (selectedIndex == '1') {
+      this.router.navigate(['welcome'], { relativeTo: this.route });
+    } else if (selectedIndex == '2') {
+      this.router.navigate(['user'], { relativeTo: this.route });
+    } else if (selectedIndex == '3') {
+      this.router.navigate(['admin'], { relativeTo: this.route });
+    } else {
+      this.logOut();
+    }
   }
 
   logOut() {

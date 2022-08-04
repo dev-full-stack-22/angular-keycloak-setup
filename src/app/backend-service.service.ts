@@ -13,4 +13,10 @@ export class BackendServiceService {
       responseType: 'text',
     });
   }
+
+  public getAdminText(): Observable<any> {
+    return this.httpClient.get('http://localhost:8000/test/admin', {
+      responseType: 'text',
+    });
+  }
 }

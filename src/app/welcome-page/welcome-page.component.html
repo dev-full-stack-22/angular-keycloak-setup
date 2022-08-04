@@ -1,0 +1,6 @@
+<div *ngIf="userInfo;else other_content">
+  <h1>Hello {{userInfo['info']['name']}}</h1>
+</div>
+<ng-template #other_content>
+  <p>Loading Data...</p>
+</ng-template>
